@@ -2,6 +2,7 @@
 #define FACILITIES_PROBLEM_H
 
 #include <string>
+#include <vector>
 
 #include "matrix.hpp"
 
@@ -16,6 +17,7 @@ public:
     int opening_cost;
     int number_of_clients;
     int number_of_facilities;
+    std::vector<Edge> edges;
 
     TransferCostsMatrix transfer_costs;
     CapacityUsagesMatrix capacity_usages;
@@ -29,9 +31,17 @@ public:
 
         this->transfer_costs = transfer_costs;
         this->capacity_usages = capacity_usages;
+
+        this->fill_edges();
     }
 
     FacilitiesProblem(std::string filename);
+
+    void fill_edges() {
+        for (auto entry : this->transfer_costs) {
+            this->edges.push_back(entry.first);
+        }
+    }
 };
 
 #endif

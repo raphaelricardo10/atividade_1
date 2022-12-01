@@ -58,37 +58,22 @@ int main()
 
     // Restrições disjuntas
     IloConstraintArray disjoint_constraints(env);
-    // for (int i = 0; i < facilities_problem.number_of_facilities; i++)
-    // {
-    //     for (int j = 0; j < facilities_problem.number_of_clients; j++)
-    //     {
-    //         disjoint_constraints.add(x[i][j] <= y[i]);
-    //     }
-    // }
-
-    for (auto entry : facilities_problem.transfer_costs) {
-
-        Edge edge = entry.first;
+    for (Edge edge : facilities_problem.edges)
+    {
         int i = edge.first;
         int j = edge.second;
-
-        std::cout << "i: " << i << '\n';
-        std::cout << "j: " << j << "\n\n";
 
         disjoint_constraints.add(x[i][j] <= y[j]);
     }
 
     // Capacidade
     IloConstraintArray capacity_constraints(env);
-    for (int i = 0; i < facilities_problem.number_of_facilities; i++)
+    for (Edge edge : facilities_problem.edges)
     {
-        IloExpr constraint(env);
+        int i = edge.first;
+        int j = edge.second;
 
-        for (int j = 0; j < facilities_problem.number_of_clients; j++)
-        {
-            std::cout << facilities_problem.capacity_usages[{i, j}] << std::endl;
-            capacity_constraints.add(facilities_problem.capacity_usages[{i, j}] * x[i][j] <= facilities_problem.capacity * y[i]);
-        }
+        capacity_constraints.add(facilities_problem.capacity_usages[{i, j}] * x[i][j] <= facilities_problem.capacity * y[j]);
     }
 
     model.add(client_constraints);
@@ -99,18 +84,22 @@ int main()
     IloExpr fo(env);
     for (int j = 0; j < facilities_problem.number_of_clients; j++)
     {
-        fo += facilities_problem.capacity * y[j];
-        for (int i = 0; i < facilities_problem.number_of_facilities; i++)
-        {
-            fo += facilities_problem.transfer_costs[{i, j}] * x[i][j];
-        }
+        fo += facilities_problem.opening_cost * y[j];
+    }
+
+    for (Edge edge : facilities_problem.edges)
+    {
+        int i = edge.first;
+        int j = edge.second;
+
+        fo += facilities_problem.transfer_costs[{i, j}] * x[i][j];
     }
 
     model.add(IloMinimize(env, fo, "F"));
 
     IloCplex solver(model); // declara variável "solver" sobre o modelo a ser solucionado
     solver.exportModel("model.lp");
-    solver.solve();         // chama o "solver"
+    solver.solve(); // chama o "solver"
 
     cout << "Max=" << solver.getObjValue() << endl;    //  imprime solução do problema
     cout << "LB=" << solver.getBestObjValue() << endl; //  imprime solução do problema
