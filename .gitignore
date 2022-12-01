@@ -1,0 +1,16 @@
+# Ignore files without extension
+*
+!*/
+!*.*
+
+# Debug symbol files
+*.dSYM/
+
+# Project configuration
+.vscode/
+
+# Build files
+*.o
+
+# CPLEX model files
+*.lp
