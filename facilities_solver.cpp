@@ -17,6 +17,8 @@ int main()
     IloBoolVarArray y(env); // declara Vetor de variáveis numéricas (que existe dentro do ambiente criado)
                             // Vetor inicialmente vazio
 
+    IloArray<IloBoolVarArray> x(env, facilities_problem.number_of_facilities);
+
     for (int i = 0; i < facilities_problem.number_of_facilities; i++)
     {
         std::ostringstream oss;
@@ -24,8 +26,6 @@ int main()
 
         y.add(IloBoolVar(env, oss.str().c_str()));
     }
-
-    IloArray<IloBoolVarArray> x(env, facilities_problem.number_of_facilities);
 
     for (int i = 0; i < facilities_problem.number_of_facilities; i++)
     {
@@ -88,11 +88,22 @@ int main()
         constraint.end();
     }
 
-    capacity_constraints.add(x[1][1] <= 0);
+    // Derruba variáveis sobressalentes
+    IloConstraintArray unused_variables_constraint(env);
+    for (int i = 0; i < facilities_problem.number_of_facilities; i++)
+    {
+        for (int j = 0; j < facilities_problem.number_of_clients; j++)
+        {
+            if (facilities_problem.capacity_usages.find({i, j}) == facilities_problem.capacity_usages.end()) {
+                unused_variables_constraint.add(x[i][j] == 0);
+            }
+        }
+    }
 
     model.add(client_constraints);
     model.add(disjoint_constraints);
     model.add(capacity_constraints);
+    model.add(unused_variables_constraint);
 
     // Função Objetivo
     IloExpr fo(env);
