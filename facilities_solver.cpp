@@ -6,9 +6,17 @@
 #include "facilities_problem.hpp"
 
 ILOSTLBEGIN
-int main()
+int main(int argc, char *argv[])
 {
-    FacilitiesFile file("instance.fac");
+    if (argc < 2)
+    {
+        cout << "Correct call: ./txt filename" << endl;
+        exit(1);
+    }
+
+    std::string filename(argv[1]);
+
+    FacilitiesFile file(filename);
     FacilitiesProblem facilities_problem = file.read_file();
 
     IloEnv env;          // declara Variável de ambiente do CPLEX
