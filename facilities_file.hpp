@@ -17,7 +17,7 @@ private:
     {
         size_t pos = 0;
         std::string token;
-        char delimiter = ' ';
+        char delimiter = ';';
         std::vector<std::string> all_tokens;
 
         while ((pos = line.find(delimiter)) != std::string::npos)
