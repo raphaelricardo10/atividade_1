@@ -27,6 +27,8 @@ int main(int argc, char *argv[])
 
     IloArray<IloBoolVarArray> x(env, facilities_problem.number_of_facilities);
 
+
+    // Variável Y
     for (int i = 0; i < facilities_problem.number_of_facilities; i++)
     {
         std::ostringstream oss;
@@ -35,6 +37,7 @@ int main(int argc, char *argv[])
         y.add(IloBoolVar(env, oss.str().c_str()));
     }
 
+    // Variável X
     for (int i = 0; i < facilities_problem.number_of_facilities; i++)
     {
         x[i] = IloBoolVarArray(env, facilities_problem.number_of_clients);
