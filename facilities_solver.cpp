@@ -17,10 +17,10 @@ int main()
     IloBoolVarArray y(env); // declara Vetor de variáveis numéricas (que existe dentro do ambiente criado)
                             // Vetor inicialmente vazio
 
-    for (int j = 1; j <= facilities_problem.number_of_clients; j++)
+    for (int i = 0; i < facilities_problem.number_of_facilities; i++)
     {
         std::ostringstream oss;
-        oss << "y_" << j;
+        oss << "y_" << i + 1;
 
         y.add(IloBoolVar(env, oss.str().c_str()));
     }
@@ -63,18 +63,32 @@ int main()
         int i = edge.first;
         int j = edge.second;
 
-        disjoint_constraints.add(x[i][j] <= y[j]);
+        disjoint_constraints.add(x[i][j] <= y[i]);
     }
 
     // Capacidade
     IloConstraintArray capacity_constraints(env);
-    for (Edge edge : facilities_problem.edges)
+    for (int i = 0; i < facilities_problem.number_of_facilities; i++)
     {
-        int i = edge.first;
-        int j = edge.second;
+        IloExpr constraint(env);
 
-        capacity_constraints.add(facilities_problem.capacity_usages[{i, j}] * x[i][j] <= facilities_problem.capacity * y[j]);
+        for (auto MatrixEntry : facilities_problem.capacity_usages)
+        {
+            Edge edge = MatrixEntry.first;
+            int capacity_usage = MatrixEntry.second;
+
+            if (edge.first == i)
+            {
+                int j = edge.second;
+                constraint += capacity_usage * x[i][j];
+            }
+        }
+
+        client_constraints.add(constraint <= facilities_problem.capacity * y[i]);
+        constraint.end();
     }
+
+    capacity_constraints.add(x[1][1] <= 0);
 
     model.add(client_constraints);
     model.add(disjoint_constraints);
@@ -82,9 +96,9 @@ int main()
 
     // Função Objetivo
     IloExpr fo(env);
-    for (int j = 0; j < facilities_problem.number_of_clients; j++)
+    for (int i = 0; i < facilities_problem.number_of_facilities; i++)
     {
-        fo += facilities_problem.opening_cost * y[j];
+        fo += facilities_problem.opening_cost * y[i];
     }
 
     for (Edge edge : facilities_problem.edges)
@@ -95,7 +109,7 @@ int main()
         fo += facilities_problem.transfer_costs[{i, j}] * x[i][j];
     }
 
-    model.add(IloMinimize(env, fo, "F"));
+    model.add(IloMinimize(env, fo, "FO"));
 
     IloCplex solver(model); // declara variável "solver" sobre o modelo a ser solucionado
     solver.exportModel("model.lp");
